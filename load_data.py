@@ -9,6 +9,5 @@ def load_data(file_path):
     df = df.sort_values(by=["ratio"], ascending=[False])  # Sort by 'ratio' to see the demand-to-supply balance
     # Adjust the table by cleaning the unnecessary data by removing the "Other" category
     df = df[df["category"] != "Other"]
-    # Filter the data to analyze only the categories which had 50 or more job openings for that month
-    df = df[df["job_count"] >= 100]
+    df = df[df['job_count'] >= 2]
     return df
