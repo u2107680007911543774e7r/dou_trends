@@ -26,7 +26,7 @@ def visualize_single(df):
 
     plt.xlabel("Job Openings per Application (Ratio)")
     plt.ylabel("Job Category")
-    plt.title("Job Market Demand by Category")
+    plt.title("Job Market Demand by Category (Jan 2025)")
     plt.gca().invert_yaxis()  # Flip the order for better readability
     plt.show()
 
@@ -82,7 +82,7 @@ def visualize_comparison(df1, df2):
     plt.show()
 
 
-def visualize_experience_trends(list_of_dfs):
+def visualize_exp_trends(list_of_dfs):
     """
     Visualizes job market demand trends across experience levels using a diverging bar chart.
 
@@ -133,12 +133,63 @@ def visualize_experience_trends(list_of_dfs):
         if df_final["category"].iloc[i] in highlight_categories:
             bar.set_color(highlight_color)
 
-    plt.xlabel("Total Change in Job Openings per Application (The Sum of Ratio Change)")
+    plt.xlabel("Total Change in Job Openings per Application (The Sum of Ratio Change) \n "
+               "(<1 year, 1-3 years, 3-5 years, 5+ years)")
     plt.ylabel("Job Category")
-    plt.title("Job Market Trend by Experience Level (<1 year, 1-3 years, 3-5 years, 5+ years)")
+    plt.title("Job Market Trend by Experience Level (Jan 2025)")
     plt.axvline(0, color="black", linestyle="--")  # Reference line at 0
     plt.bar_label(bars, fmt="%.2f", padding=5)
 
+    plt.show()
+
+
+def visualize_analytics_exp_trends(list_of_dfs_2024, list_of_dfs_2025):
+    """
+    Compares experience trends for the 'Analyst' category between January 2024 and January 2025.
+
+    Parameters:
+    - list_of_dfs_2024: List of DataFrames for January 2024 (each for a different experience level)
+    - list_of_dfs_2025: List of DataFrames for January 2025 (each for a different experience level)
+    """
+
+    def process_data(list_of_dfs):
+        """Loads and merges data from a list of CSV files into a single DataFrame."""
+
+        df_final = list_of_dfs[0][["category", "ratio"]].merge(list_of_dfs[1][["category", "ratio"]], on="category", how="inner", suffixes=("_<1", "_1-3")) \
+                   .merge(list_of_dfs[2][["category", "ratio"]], on="category", how="inner") \
+                   .merge(list_of_dfs[3][["category", "ratio"]], on="category", how="inner", suffixes=("_3-5", "_5+"))
+
+        df_final.rename(columns={"ratio": "3-5", "ratio_5+": "5+"}, inplace=True)
+        return df_final
+
+    # Process both years' data
+    df_2024 = process_data(list_of_dfs_2024)
+    df_2025 = process_data(list_of_dfs_2025)
+
+    # Filter for 'Analyst' category
+    df_analyst_2024 = df_2024[df_2024["category"] == "Analyst"]
+    df_analyst_2025 = df_2025[df_2025["category"] == "Analyst"]
+
+    if df_analyst_2024.empty or df_analyst_2025.empty:
+        print("No data available for 'Analyst' in one of the years.")
+        return
+
+    # Prepare data for plotting
+    experience_levels = ["<1", "1-3", "3-5", "5+"]
+    ratios_2024 = df_analyst_2024.iloc[0, 1:].values
+    ratios_2025 = df_analyst_2025.iloc[0, 1:].values
+
+    # Plot line chart
+    plt.figure(figsize=(10, 6))
+    plt.plot(experience_levels, ratios_2024, marker="o", linestyle="-", color="lightblue", label="Jan 2024")
+    plt.plot(experience_levels, ratios_2025, marker="o", linestyle="-", color="lightgreen", label="Jan 2025")
+
+    # Formatting
+    plt.xlabel("Years of Experience")
+    plt.ylabel("Ratio (Job Count / Applications)")
+    plt.title("Analyst Ratio Trend")
+    plt.grid(True, linestyle="--", alpha=0.6)
+    plt.legend()
     plt.show()
 
 
